@@ -60,4 +60,3 @@ print (x)
 y = x.copy()
 y[0] = 'udine'
 print(y)
-
