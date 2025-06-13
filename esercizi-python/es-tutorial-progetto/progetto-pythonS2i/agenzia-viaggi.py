@@ -9,6 +9,7 @@
 # tipo = indentifica il tipo di viaggio come ad esempio viaggi di gruppo, viaggio di nozze, ecc...
 
 #STRUTTURA DATI
+from fileinput import FileInput
 from struct import pack
 from matplotlib.pylab import f
 from numpy import integer
@@ -16,8 +17,6 @@ from regex import F
 from sqlalchemy import null
 from zmq import NULL
 
-risultato = []
-filtri = {}
 continua = True
 lista_viaggi = [
     {
@@ -166,7 +165,7 @@ lista_viaggi = [
 
 #stampa l'elenco dei viaggi disponibili
 def mostraViaggi(lista_viaggi):
-    print("VIAGGI:")
+    print("\n --VIAGGI DISPONIBILI --")
     for viaggio in lista_viaggi:
         print(f"nome: {viaggio['nome']}")
         print(f"paese: {viaggio['paese']}")
@@ -201,41 +200,61 @@ def aggiungiViaggio():
 
 #ricerca di un viaggio
 def cercaViaggi(lista_viaggi):
+    filtri = {}
     print("\n >> ricerca del viaggio: ")
     nome = input("ricerca per [nome] oppure (vuoto) per skippare il filtro: ") 
     paese = input("ricerca per [paese] oppure (vuoto) per skippare il filtro: ") 
     attrazioni = input("ricerca per [attrazzioni] separate da ',' oppure (vuoto) per skippare il filtro: ")
-    attrazioni = [attrazioni.strip() for attr in attrazioni.split(',')] 
+    attrazioni_lista = [a.strip() for a in attrazioni.split(',') if a.strip()]
     durata = input("ricerca per [durata] oppure (vuoto) per skippare il filtro: ")
-    if(durata != "" or durata != NULL):
-        durata = int(durata)
-    else:
-        durata = "" 
+    if durata:
+        try:
+            filtri["durata"] = int(durata)
+        except:
+            print(" ---> Durata non valida, verrà ignorata")
         
     tipo = input("ricerca per [tipo] oppure (vuoto) per skippare il filtro: ")
     
+    if nome:
+        filtri["nome"] = nome
     if paese:
         filtri["paese"] = paese
     if tipo:
         filtri["tipo"] = tipo
-    if (durata!= "" or durata !=NULL):
+    if durata:
         filtri["durata"] = durata
+    if attrazioni_lista:
+        filtri["attrazioni_turistiche"] = attrazioni_lista
     
     
-    risultato = viaggiFiltrati(**filtri)
+    risultato = viaggiFiltrati(lista_viaggi, **filtri)
+    print("-"*30)
     print(">> processo di ricerca terminato!")
-    print("Viaggi che rientrano nelle tue richieste:\n\n")
+    print("-"*30)
+    print(">> [ RISULTATI RICERCA ]")
     mostraViaggi(risultato)
+    print("-"*30)
     print("\n\n")
     
 
 
 
-def viaggiFiltrati(**filtri):
+def viaggiFiltrati(lista_viaggi, **filtri):
+    risultato = []
     for viaggio in lista_viaggi:
+        corrisponde = True
         for chiave, valore in filtri.items():
-            if (viaggio[chiave] == valore):
-                risultato.append(viaggio)
+            if(chiave == "attrazioni_turistiche"):
+                # Controlla che tutte le attrazioni cercate siano presenti
+                if not all( attr in viaggio.get(chiave, []) for attr in valore):
+                    corrisponde = False
+                    break
+            else:
+                if viaggio.get(chiave) != valore:
+                    corrisponde = False
+                    break
+        if corrisponde:
+            risultato.append(viaggio)
     return risultato
                 
         
