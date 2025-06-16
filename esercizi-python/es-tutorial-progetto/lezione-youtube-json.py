@@ -6,7 +6,9 @@
 
 import json
 
-#ESEMPIO 1    passaggio da PYTHON ---> JSON
+from zmq import proxy
+
+#ESEMPIO 1    passaggio da PYTHON ---> JSON    trasformo da stringa json a dict 
 
 x = '{"nome": "Luca", "cognome": "Rossi", "eta": 25 }'
 y = json.loads(x)
@@ -16,3 +18,16 @@ print(y)
 print(type(y))   #verifichiamo che abbiamo trasformato la stringa in un dict che come struttura è molto simile al json
 
 print(y["nome"])
+
+val = {
+    "nome": "Luca",
+    "cognome": "Rossi",
+    "eta": 25
+}
+
+y = json.dumps(val)
+print(y)
+print(type(y))
+
+#ESEMPIO 2     passaggio da JSON ---->  PYHON  trasformo da dict a stringa json
+
